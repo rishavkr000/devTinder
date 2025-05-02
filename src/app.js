@@ -1,31 +1,35 @@
 const express = require("express");
-
+const connectDB = require("./config/database");
 const app = express();
+const User = require("./models/User");
 
-// const { isAdmin } = require("./middlewares/auth");
+app.post("/signup", async (req, res) => {
 
-// app.use("/admin", isAdmin)
+  const userData = new User({
+    firstName: "Rishav",
+    lastName: "Kumar",
+    email: "rishavkr000@gmail.com",
+    password: "Rishav@123",
+    age: 24,
+    gender: "Male",
+  });
 
-// app.get("/getAllData", (req, res) => {
-//   throw new Error("Error occurred while fetching data");
-//   res.send("Accessed all data");
-// });
-
-// app.use("/", (err, req, res, next) => {
-//   res.status(500).send("Something went wrong: " + err.message);
-//   // console.error(err.stack);
-// });
-
-app.get("/getAllData", (req, res) => {
-  try{
-    // Simulating an error
-    throw new Error("Error occurred while fetching data");
-    res.send("Accessed all data");
-  } catch(err) {
-    res.status(500).send("Something went wrong from catch: " + err.message);
+  try {
+    await userData.save();
+    res.status(201).json({ message: "User data saved successfully" });
+  } catch (err) {
+    console.error("Error saving user data:", err);
+    res.status(400).json({ message: "Error saving user data" });
   }
-})
-
-app.listen(7777, () => {
-  console.log("Server is running on the port 7777");
 });
+
+connectDB()
+  .then(() => {
+    console.log("Connected to MongoDB");
+    app.listen(7777, () => {
+      console.log("Server is running on the port 7777");
+    });
+  })
+  .catch(() => {
+    console.log("Error connecting to MongoDB");
+  });

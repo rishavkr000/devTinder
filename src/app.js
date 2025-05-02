@@ -4,19 +4,16 @@ const app = express();
 const User = require("./models/User");
 require("dotenv").config();
 
-app.post("/signup", async (req, res) => {
+app.use(express.json());
 
-  const userData = new User({
-    firstName: "Rishav",
-    lastName: "Kumar",
-    email: "rishavkr000@gmail.com",
-    password: "Rishav@123",
-    age: 24,
-    gender: "Male",
-  });
+app.post("/signup", async (req, res) => {
+  const userData = req.body;
+
+  //Creating a new instance of the User model with the received data
+  const user = new User(userData);
 
   try {
-    await userData.save();
+    await user.save();
     res.status(201).json({ message: "User data saved successfully" });
   } catch (err) {
     console.error("Error saving user data:", err);

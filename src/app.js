@@ -6,6 +6,7 @@ require("dotenv").config();
 
 app.use(express.json());
 
+// This endpoint is used to create a new user in the database
 app.post("/signup", async (req, res) => {
   const userData = req.body;
 
@@ -20,6 +21,44 @@ app.post("/signup", async (req, res) => {
     res.status(400).json({ message: "Error saving user data" });
   }
 });
+
+// It uses the email provided in the request body to find the user in the database
+app.get("/user", async (req, res) => {
+  const userEmail = req.body.email;
+  try {
+    const user = await User.findOne({ email: userEmail });
+
+    return res.status(200).json({user});
+  } catch (err) {
+    res.status(500).send("Something went wrong");
+  }
+});
+
+// This endpoint is used to fetch all users from the database
+app.get("/feed", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching users" });
+  } 
+})
+
+// This endpoint is used to find a user from the database by using the userId provided in the request body
+app.get("/findById", async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    
+    const user = await User.findById(userId);
+
+    if(!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.send(user);
+  } catch (err) {
+    res.status(500).send("Something went wrong");
+  }
+})
 
 connectDB()
   .then(() => {

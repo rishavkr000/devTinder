@@ -2,26 +2,29 @@ const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
 const User = require("./models/user");
+const { signUpValidation } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 require("dotenv").config();
 
 app.use(express.json());
 
 // This endpoint is used to create a new user in the database
 app.post("/signup", async (req, res) => {
-  const userData = req.body;
-
-  const { firstName, lastName, email, password } = userData;
-
-  //Creating a new instance of the User model with the received data
-  const user = new User(userData);
-
+  const { firstName, lastName, email, password } = req.body;
+  const saltRounds = 10;
   try {
+    // Validation of user data
+    signUpValidation(req);
 
-    if(!firstName || !lastName || !email || !password) {
-      throw new Error("Please provide all the required fields");
-    }
+    // Encrypt the password
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const existingUser = await User.find({ email: userData.email });
+    //Creating a new instance of the User model
+    const user = new User({
+      firstName, lastName, email, password: hashedPassword
+    });
+
+    const existingUser = await User.find({ email: req.body.email });
 
     if (existingUser.length > 0) {
       throw new Error("User already exists");
@@ -31,9 +34,34 @@ app.post("/signup", async (req, res) => {
     res.status(201).json({ message: "User data saved successfully" });
   } catch (err) {
     console.error("Error saving user data:", err);
-    res.status(400).json({ message: "Error saving user data:" + err.message });
+    res.status(400).json({ message: "Error:" + err.message });
   }
 });
+
+app.post("/login", async (req, res) => {
+  const {email, password} = req.body;
+
+  try {
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please provide all the required fields" });
+    }
+
+    const user = await User.findOne({email: email});
+    if (!user) {
+      return res.status(404).json({ message: "Invalid credentials" });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    res.status(200).json({ message: "Login successful", user });
+  } catch (err) {
+    res.status(400).json({ message: "Error:" + err.message });
+  }
+})
 
 // It uses the email provided in the request body to find the user in the database
 app.get("/user", async (req, res) => {

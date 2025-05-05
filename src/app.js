@@ -1,7 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
-const User = require("./models/User");
+const User = require("./models/user");
 require("dotenv").config();
 
 app.use(express.json());
@@ -18,7 +18,7 @@ app.post("/signup", async (req, res) => {
     res.status(201).json({ message: "User data saved successfully" });
   } catch (err) {
     console.error("Error saving user data:", err);
-    res.status(400).json({ message: "Error saving user data" });
+    res.status(400).json({ message: "Error saving user data:" +  err.message });
   }
 });
 
@@ -74,19 +74,20 @@ app.delete("/findByIdAndDelete", async (req, res) => {
 // This endpoint is used to update a user in the database by using the userId provided in the request body
 app.patch("/user", async (req, res) => {
   const userId = req.body.userId;
-
+  const data = req.body;
   try {
-    const user = await User.findByIdAndUpdate(userId, {age: 20}, {
-      new: true,
+    const user = await User.findByIdAndUpdate(userId, data, {
+      returnDocument: "after",
+      runValidators: true
     });
-
+    console.log(user);
     if (!user) {
       return res.status(404).json("User not found");
     }
 
     res.status(200).json("User updated successfully");
   } catch (err) {
-    res.status(500).send("Something went wrong");
+    res.status(500).send("Something went wrong: " + err.message);
   }
 });
 

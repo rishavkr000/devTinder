@@ -10,15 +10,28 @@ app.use(express.json());
 app.post("/signup", async (req, res) => {
   const userData = req.body;
 
+  const { firstName, lastName, email, password } = userData;
+
   //Creating a new instance of the User model with the received data
   const user = new User(userData);
 
   try {
+
+    if(!firstName || !lastName || !email || !password) {
+      throw new Error("Please provide all the required fields");
+    }
+
+    const existingUser = await User.find({ email: userData.email });
+
+    if (existingUser.length > 0) {
+      throw new Error("User already exists");
+    }
+
     await user.save();
     res.status(201).json({ message: "User data saved successfully" });
   } catch (err) {
     console.error("Error saving user data:", err);
-    res.status(400).json({ message: "Error saving user data:" +  err.message });
+    res.status(400).json({ message: "Error saving user data:" + err.message });
   }
 });
 
@@ -72,13 +85,23 @@ app.delete("/findByIdAndDelete", async (req, res) => {
 });
 
 // This endpoint is used to update a user in the database by using the userId provided in the request body
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
   const data = req.body;
   try {
+    const updatedData = ["age", "gender", "about"];
+
+    const isUpdateAllowed = Object.keys(data).every((key) => {
+      return updatedData.includes(key);
+    });
+
+    if (!isUpdateAllowed) {
+      throw new Error("You are not allowed to update this data");
+    }
+
     const user = await User.findByIdAndUpdate(userId, data, {
       returnDocument: "after",
-      runValidators: true
+      runValidators: true,
     });
     console.log(user);
     if (!user) {

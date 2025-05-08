@@ -4,9 +4,13 @@ const app = express();
 const User = require("./models/user");
 const { signUpValidation } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth");
 require("dotenv").config();
 
 app.use(express.json());
+app.use(cookieParser());
 
 // This endpoint is used to create a new user in the database
 app.post("/signup", async (req, res) => {
@@ -39,7 +43,7 @@ app.post("/signup", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const {email, password} = req.body;
+  const { email, password } = req.body;
 
   try {
 
@@ -47,7 +51,7 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Please provide all the required fields" });
     }
 
-    const user = await User.findOne({email: email});
+    const user = await User.findOne({ email: email });
     if (!user) {
       return res.status(404).json({ message: "Invalid credentials" });
     }
@@ -57,90 +61,35 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    res.status(200).json({ message: "Login successful", user });
+    // Create a JWT token
+    const token = jwt.sign({ _id: user._id }, "DevTinder@Rishav", {expiresIn: '7d'})
+    // Validate the token
+    res.cookie("token", token, {expires: new Date(Date.now() + 8 * 3600000)}); // cookie will be removed after 8 hours
+
+    res.status(200).json({ message: "Login successful", token: token });
   } catch (err) {
     res.status(400).json({ message: "Error:" + err.message });
   }
 })
 
-// It uses the email provided in the request body to find the user in the database
-app.get("/user", async (req, res) => {
-  const userEmail = req.body.email;
+// Get User profile
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    const user = await User.findOne({ email: userEmail });
-
-    return res.status(200).json({ user });
-  } catch (err) {
-    res.status(500).send("Something went wrong");
-  }
-});
-
-// This endpoint is used to fetch all users from the database
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.status(200).json(users);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching users" });
-  }
-});
-
-// This endpoint is used to find a user from the database by using the userId provided in the request body
-app.get("/findById", async (req, res) => {
-  const userId = req.body.userId;
-  try {
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = req.user;
     res.send(user);
   } catch (err) {
-    res.status(500).send("Something went wrong");
+    res.status(500).json({ message: "Error:" + err.message });
   }
-});
+})
 
-// This endpoint is used to delete a user in the database by using the userId provided in the request body
-app.delete("/findByIdAndDelete", async (req, res) => {
-  const userId = req.body.userId;
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
   try {
-    await User.findByIdAndDelete(userId);
-
-    res.status(200).json({ message: "User deleted successfully" });
+    const user = req.user;
+    res.status(200).send(user.firstName + " send a connection request.");
   } catch (err) {
-    res.status(500).send("Something went wrong");
+    res.status(400).json({ message: "Error:" + err.message });
   }
-});
-
-// This endpoint is used to update a user in the database by using the userId provided in the request body
-app.patch("/user/:userId", async (req, res) => {
-  const userId = req.params.userId;
-  const data = req.body;
-  try {
-    const updatedData = ["age", "gender", "about"];
-
-    const isUpdateAllowed = Object.keys(data).every((key) => {
-      return updatedData.includes(key);
-    });
-
-    if (!isUpdateAllowed) {
-      throw new Error("You are not allowed to update this data");
-    }
-
-    const user = await User.findByIdAndUpdate(userId, data, {
-      returnDocument: "after",
-      runValidators: true,
-    });
-    console.log(user);
-    if (!user) {
-      return res.status(404).json("User not found");
-    }
-
-    res.status(200).json("User updated successfully");
-  } catch (err) {
-    res.status(500).send("Something went wrong: " + err.message);
-  }
-});
+})
 
 connectDB()
   .then(() => {

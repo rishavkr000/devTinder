@@ -43,32 +43,25 @@ app.post("/signup", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-
+    const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: "Please provide all the required fields" });
     }
-
     const user = await User.findOne({ email: email });
     if (!user) {
-      return res.status(404).json({ message: "Invalid credentials" });
+      throw new Error("Invalid credentials");
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    const isPasswordValid = await user.validatePassword(password);
+    if (isPasswordValid) {
+      const token = await user.getJWT();
+      res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000) }); // cookie will be removed after 8 hours
+      res.status(200).json({ message: "Login successful", token: token });
+    } else {
+      throw new Error("Invalid credentials");
     }
-
-    // Create a JWT token
-    const token = jwt.sign({ _id: user._id }, "DevTinder@Rishav", {expiresIn: '7d'})
-    // Validate the token
-    res.cookie("token", token, {expires: new Date(Date.now() + 8 * 3600000)}); // cookie will be removed after 8 hours
-
-    res.status(200).json({ message: "Login successful", token: token });
   } catch (err) {
-    res.status(400).json({ message: "Error:" + err.message });
+    res.status(400).json({ message: "Error: " + err.message });
   }
 })
 

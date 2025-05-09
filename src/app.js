@@ -1,88 +1,20 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
-const User = require("./models/user");
-const { signUpValidation } = require("./utils/validation");
-const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
-const { userAuth } = require("./middlewares/auth");
 require("dotenv").config();
 
 app.use(express.json());
 app.use(cookieParser());
 
-// This endpoint is used to create a new user in the database
-app.post("/signup", async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
-  const saltRounds = 10;
-  try {
-    // Validation of user data
-    signUpValidation(req);
+const { authRouter } = require("./routes/auth");
+const { profileRouter } = require("./routes/profile");
+const { requestRouter } = require("./routes/request");
 
-    // Encrypt the password
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+app.use('/', authRouter);
+app.use('/', profileRouter);
+app.use('/', requestRouter);
 
-    //Creating a new instance of the User model
-    const user = new User({
-      firstName, lastName, email, password: hashedPassword
-    });
-
-    const existingUser = await User.find({ email: req.body.email });
-
-    if (existingUser.length > 0) {
-      throw new Error("User already exists");
-    }
-
-    await user.save();
-    res.status(201).json({ message: "User data saved successfully" });
-  } catch (err) {
-    console.error("Error saving user data:", err);
-    res.status(400).json({ message: "Error:" + err.message });
-  }
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: "Please provide all the required fields" });
-    }
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      throw new Error("Invalid credentials");
-    }
-    const isPasswordValid = await user.validatePassword(password);
-    if (isPasswordValid) {
-      const token = await user.getJWT();
-      res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000) }); // cookie will be removed after 8 hours
-      res.status(200).json({ message: "Login successful", token: token });
-    } else {
-      throw new Error("Invalid credentials");
-    }
-  } catch (err) {
-    res.status(400).json({ message: "Error: " + err.message });
-  }
-})
-
-// Get User profile
-app.get("/profile", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    res.send(user);
-  } catch (err) {
-    res.status(500).json({ message: "Error:" + err.message });
-  }
-})
-
-app.post("/sendConnectionRequest", userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    res.status(200).send(user.firstName + " send a connection request.");
-  } catch (err) {
-    res.status(400).json({ message: "Error:" + err.message });
-  }
-})
 
 connectDB()
   .then(() => {

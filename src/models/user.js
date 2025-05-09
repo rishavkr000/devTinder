@@ -7,8 +7,7 @@ const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
-    minLength: 4,
-    maxLength: 10,
+    maxLength: 20,
     validate(value) {
       if(validator.isEmpty(value)) {
         throw new Error("First name cannot be empty");
@@ -18,8 +17,7 @@ const userSchema = new mongoose.Schema({
   lastName: {
     type: String,
     required: true,
-    minLength: 4,
-    maxLength: 10,
+    maxLength: 20,
     validate(value) {
       if(validator.isEmpty(value)) {
         throw new Error("Last name cannot be empty");
@@ -48,8 +46,7 @@ const userSchema = new mongoose.Schema({
     }
   },
   age: {
-    type: Number,
-    min: 18
+    type: Number
   },
   gender: {
     type: String,
@@ -63,6 +60,9 @@ const userSchema = new mongoose.Schema({
   about: {
     type: String,
     default: "This is the default about me",
+  },
+  skills: {
+    type: [String]
   },
   profileUrl: {
     type: String,

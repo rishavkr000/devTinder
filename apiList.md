@@ -1,25 +1,26 @@
 
 
-## Auth API
+## authRouter
 - POST /signup
 - POST /login
 - POST /logout
-- POST /forgotPassword
 
-## Profile API
-- GET /feed
-- GET /profile
-- PATCH /profile
+## profileRouter
+- GET /profile/view
+- PATCH /profile/edit
+- PATCH /profile/password
 - DELETE /profile
 
-## Connection API
-- POST /connection/ignored/:userId
-- POST /connection/interested/:userId
-- POST /connection/rejected/:userId
-- POST /connection/accepted/:userId
+## connectionRequestRouter
+- POST /request/send/interested/:userId
+- POST /request/send/ignored/:userId
+- POST /request/review/accepted/:requestId
+- POST /request/review/rejected/:requestId
 
-## Connection Receive API
-- POST /receive/connection/:requestId
+## userRouter
+- GET /user/connections
+- GET /user/requests
+- GET /user/feed
 
 
 

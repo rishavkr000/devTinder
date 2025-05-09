@@ -57,4 +57,11 @@ const profileEditFieldValidate = (req) => {
     return isFieldAllowedForEdit;
 }
 
-module.exports = { signUpValidation, profileEditFieldValidate };
+const passwordValidation = (req) => {
+    const newPassword = req;
+    if(!validator.isStrongPassword(newPassword)){
+        throw new Error("Password is not strong enough")
+    }
+}
+
+module.exports = { signUpValidation, profileEditFieldValidate, passwordValidation };

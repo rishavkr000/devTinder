@@ -11,7 +11,6 @@
 
 ## connectionRequestRouter
 - POST /request/send/:status/:userId
-
 - POST /request/review/:status/:requestId
 
 

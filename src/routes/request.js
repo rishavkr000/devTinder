@@ -75,7 +75,6 @@ requestRouter.post("/request/send/:status/:userId", userAuth, async (req, res) =
     }
 })
 
-
 requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;

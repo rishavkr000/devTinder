@@ -47,7 +47,7 @@ authRouter.post("/login", async (req, res) => {
         if (isPasswordValid) {
             const token = await user.getJWT();
             res.cookie("token", token, { expires: new Date(Date.now() + 8 * 3600000) }); // cookie will be removed after 8 hours
-            res.status(200).json({ message: "Login successful", token: token });
+            res.status(200).json({ message: "Login successful", data: user });
         } else {
             throw new Error("Invalid credentials");
         }

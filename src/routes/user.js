@@ -2,6 +2,7 @@ const express = require("express");
 const userRouter = express.Router();
 const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest");
+const User = require("../models/user");
 
 // Both are working same
 const userDataToPopulate = "firstName lastName gender age profileUrl skills"
@@ -43,7 +44,7 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         }
 
         const data = findAllConnections.map((row) => {
-            if(row.fromUserId._id.toString() === loggedInUser._id.toString()) {
+            if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
                 return row.toUserId;
             }
             return row.fromUserId;
@@ -53,6 +54,44 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
 
     } catch (err) {
         res.status(400).json({ message: err.message })
+    }
+})
+
+userRouter.get("/user/feed", userAuth, async (req, res) => {
+    try {
+
+        // User should see all the user card except
+        // 1. his own card
+        // 2. his connection
+        // 3. ignored people
+        // 4. already sent the connection request 
+
+        const loggedInUser = req.user;
+
+        const connectionRequests = await ConnectionRequest.find({
+            $or: [
+                { fromUserId: loggedInUser },
+                { toUserId: loggedInUser._id }
+            ]
+        })
+
+        const hideUsersFromFeed = new Set();
+        connectionRequests.forEach((request) => {
+            hideUsersFromFeed.add(request.fromUserId.toString());
+            hideUsersFromFeed.add(request.toUserId.toString());
+        });
+
+        const users = await User.find({
+            $and: [
+                { _id: { $nin: Array.from(hideUsersFromFeed) } },
+                { _id: { $ne: loggedInUser._id } }
+            ]
+        }).select(userDataToPopulate)
+
+        res.send(users)
+
+    } catch (err) {
+        res.status(400).json({ Error: + err.message })
     }
 })
 

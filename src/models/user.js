@@ -66,6 +66,7 @@ const userSchema = new mongoose.Schema({
   },
   profileUrl: {
     type: String,
+    default: "https://www.un.org/pga/wp-content/uploads/sites/53/2018/09/Dummy-image-1.jpg",
     validate(value) {
       if (!validator.isURL(value)) {
         throw new Error("Profile URL is not valid");

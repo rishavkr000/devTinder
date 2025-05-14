@@ -7,7 +7,7 @@ const userAuth = async (req, res, next) => {
         const { token } = cookies;
 
         if (!token) {
-            throw new Error("Token is required, Please login first!");
+            return res.status(401).send("Please login to access the application.");
         }
 
         const tokenVerification = await jwt.verify(token, "DevTinder@Rishav");

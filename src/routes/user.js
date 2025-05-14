@@ -5,7 +5,7 @@ const ConnectionRequest = require("../models/connectionRequest");
 const User = require("../models/user");
 
 // Both are working same
-const userDataToPopulate = "firstName lastName gender age profileUrl skills"
+const userDataToPopulate = "firstName lastName gender age profileUrl skills about"
 // const userDataToPopulate = ["firstName", "lastName", "gender", "age", "profileUrl", "skills"]
 
 // Get all the pending request for the loggegIn user
@@ -19,7 +19,7 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
         }).populate("fromUserId", userDataToPopulate)
 
         if (connectionRequest.length == 0) {
-            return res.status(404).json({ message: "No pending request found" })
+            return res.status(200).json({ message: "No pending request found" })
         }
 
         return res.json({ message: "Connection found succeccfully", data: connectionRequest })

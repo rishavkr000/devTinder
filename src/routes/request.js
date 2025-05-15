@@ -4,6 +4,8 @@ const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest");
 const User = require("../models/user");
 
+const sendEmail = require("../utils/sendEmail");
+
 requestRouter.post("/request/send/:status/:userId", userAuth, async (req, res) => {
     try {
         const fromUserId = req.user._id;
@@ -53,6 +55,10 @@ requestRouter.post("/request/send/:status/:userId", userAuth, async (req, res) =
         });
 
         const savedConnection = await connection.save();
+
+        await sendEmail.run("A new friend request from " + req.user.firstName,
+            req.user.firstName + " is " + status + " in your profile"
+        );
 
         const name = `${req.user.firstName}`;
         const dynamicMessage =
@@ -107,4 +113,4 @@ requestRouter.post("/request/review/:status/:requestId", userAuth, async (req, r
     }
 })
 
-module.exports = { requestRouter }
+module.exports = { requestRouter };

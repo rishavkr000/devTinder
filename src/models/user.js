@@ -66,7 +66,7 @@ const userSchema = new mongoose.Schema({
   },
   profileUrl: {
     type: String,
-    default: "https://www.un.org/pga/wp-content/uploads/sites/53/2018/09/Dummy-image-1.jpg",
+    default: process.env.DEFAULT_USER_PHOTO_URL,
     validate(value) {
       if (!validator.isURL(value)) {
         throw new Error("Profile URL is not valid");
@@ -78,7 +78,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.methods.getJWT = async function () {
   const user = this;
-  const token = await jwt.sign({_id: user._id}, "DevTinder@Rishav", {expiresIn: "7d"});
+  const token = await jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: process.env.LOGIN_TOKEN_EXPIERY});
   return token;
 }
 

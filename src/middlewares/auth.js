@@ -10,7 +10,7 @@ const userAuth = async (req, res, next) => {
             return res.status(401).send("Please login to access the application.");
         }
 
-        const tokenVerification = await jwt.verify(token, "DevTinder@Rishav");
+        const tokenVerification = await jwt.verify(token, process.env.JWT_SECRET);
 
         const { _id } = tokenVerification;
 

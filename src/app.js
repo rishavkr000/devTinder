@@ -6,7 +6,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }));
 app.use(express.json());
@@ -26,8 +26,8 @@ app.use('/', userRouter);
 connectDB()
   .then(() => {
     console.log("Connected to MongoDB");
-    app.listen(7777, () => {
-      console.log("Server is running on the port 7777");
+    app.listen(process.env.PORT, () => {
+      console.log(`Server is running on the port ${process.env.PORT}`);
     });
   })
   .catch(() => {

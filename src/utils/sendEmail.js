@@ -34,8 +34,8 @@ const createSendEmailCommand = (toAddress, fromAddress, subject, body) => {
 
 const run = async (subject, body) => {
   const sendEmailCommand = createSendEmailCommand(
-    "work.rishavkr000@gmail.com",
-    "rishavkr000@gmail.com",
+    process.env.AWS_RECEIVER_EMAIL_ID,
+    process.env.AWS_SENDER_EMAIL_ID,
     subject,
     body
   );

@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     maxLength: 20,
     validate(value) {
-      if(validator.isEmpty(value)) {
+      if (validator.isEmpty(value)) {
         throw new Error("First name cannot be empty");
       }
     }
@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     maxLength: 20,
     validate(value) {
-      if(validator.isEmpty(value)) {
+      if (validator.isEmpty(value)) {
         throw new Error("Last name cannot be empty");
       }
     }
@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     // enum: ["Male", "Female", "Other"],
     validate(value) {
-      if(!["male", "female", "other"].includes(value)) {
+      if (!["male", "female", "other"].includes(value)) {
         throw new Error("Gender data is not valid");
       }
     }
@@ -64,6 +64,13 @@ const userSchema = new mongoose.Schema({
   skills: {
     type: [String]
   },
+  isPremium: {
+    type: Boolean,
+    default: false
+  },
+  membershipType: {
+    type: String
+  },
   profileUrl: {
     type: String,
     default: process.env.DEFAULT_USER_PHOTO_URL,
@@ -73,12 +80,12 @@ const userSchema = new mongoose.Schema({
       }
     }
   }
-}, {timestamps: true});
+}, { timestamps: true });
 
 
 userSchema.methods.getJWT = async function () {
   const user = this;
-  const token = await jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn: process.env.LOGIN_TOKEN_EXPIERY});
+  const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.LOGIN_TOKEN_EXPIERY });
   return token;
 }
 

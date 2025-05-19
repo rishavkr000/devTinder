@@ -18,7 +18,6 @@ const initializeSocket = (server) => {
     // Handle event
     socket.on("joinChat", ({ firstName, userId, targetUserId }) => {
       const roomId = secretRoomId(userId, targetUserId);
-      console.log(firstName + " is joining : " + roomId)
       socket.join(roomId);
     });
 
